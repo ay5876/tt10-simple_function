@@ -6,7 +6,10 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_um_ay5876_d_flip_flop.v
+PROJECT_SOURCES = tt_um_ay5876_simple.v
+TOPLEVEL = tt_um_ay5876_simple
+MODULE = test
+
 
 ifneq ($(GATES),yes)
 
