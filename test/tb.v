@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+
 module tb;
   reg  [7:0] ui_in;
   wire [7:0] uo_out;
@@ -9,6 +10,7 @@ module tb;
   reg  clk;
   reg  rst_n;
 
+  // MUST match your module name exactly
   tt_um_ay5876_simple dut (
     .ui_in(ui_in),
     .uo_out(uo_out),
@@ -21,6 +23,6 @@ module tb;
   );
 
   initial clk = 0;
-  always #5 clk = ~clk; // 100MHz sim clock (not required by logic)
+  always #5 clk = ~clk;
 
 endmodule
