@@ -1,32 +1,44 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import Timer
+from cocotb.triggers import Timer, ClockCycles
 
 @cocotb.test()
 async def test_all_combinations(dut):
-    # Clock (not required logically, but safe for template)
-    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    dut._log.info("Starting test...")
 
-    # Init
-    dut.ena.value = 1
+    # Start the clock
+    cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
+
+    # Reset
+    dut._log.info("Resetting...")
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
-    dut.uio_in.value = 0
-    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 5)
 
-    await Timer(20, unit="ns")
+    dut._log.info("Testing all combinations...")
 
-    for A in [0, 1]:
-        for B in [0, 1]:
-            for C in [0, 1]:
-                # Drive ui_in as a full 8-bit value (A->bit0, B->bit1, C->bit2)
-                val = (A << 0) | (B << 1) | (C << 2)
-                dut.ui_in.value = val
+    # Iterate through possible inputs (assuming 3 inputs A, B, C)
+    for i in range(8):
+        # Apply input as a whole byte to avoid packed array errors
+        dut.ui_in.value = i
+        
+        # Wait for combinational logic to settle
+        await Timer(1, units="ns")
 
-                await Timer(20, unit="ns")  # settle
+        # Extract bits for verification logic
+        A = (i >> 0) & 1
+        B = (i >> 1) & 1
+        C = (i >> 2) & 1
 
-                Cn = 1 - C
-                Fexp = (A & B) | Cn
-                Yexp = Cn
+        # DEFINE YOUR EXPECTED OUTPUT 'F' HERE
+        # Example: F = A & B | C (Change this to match your Verilog logic!)
+        F = (A & B) | C 
 
-                uo = int(dut.uo_out.value)
-                F
+        # Check the output (uo_out)
+        # We check bit 0 of uo_out (assuming that's where your result is)
+        actual_F = int(dut.uo_out.value) & 1
+        
+        assert actual_F == F, f"Failed at input {i}: expected {F}, got {actual_F}"
+        
+    dut._log.info("All tests passed!")
