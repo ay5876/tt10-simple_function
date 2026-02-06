@@ -4,20 +4,18 @@ from cocotb.triggers import Timer
 
 @cocotb.test()
 async def test_all_combinations(dut):
-    # Start a clock (safe for template)
+    # Clock (safe even for combinational)
     cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
 
-    # Initialize
+    # Init
     dut.ena.value = 1
     dut.rst_n.value = 1
     dut.uio_in.value = 0
     dut.ui_in.value = 0
-
     await Timer(20, unit="ns")
 
-    # Iterate all 8 combinations: ui_in[2:0] = C B A (bit2 bit1 bit0)
+    # ui_in bits: [2]=C, [1]=B, [0]=A
     for i in range(8):
-        # Drive inputs: A=bit0, B=bit1, C=bit2
         dut.ui_in.value = i
         await Timer(20, unit="ns")  # settle
 
@@ -26,8 +24,8 @@ async def test_all_combinations(dut):
         C = (i >> 2) & 1
 
         Cn = 1 - C
-        Fexp = (A & B) | Cn      # F = AB + C'
-        Yexp = Cn                # Y = C'
+        Fexp = (A & B) | Cn   # F = AB + C'
+        Yexp = Cn             # Y = C'
 
         uo = int(dut.uo_out.value)
         Fgot = (uo >> 0) & 1
