@@ -51,5 +51,8 @@ module tb;
     .rst_n(rst_n)
   );
 `endif
-
+initial begin
+  $dumpfile("tb.vcd");
+  $dumpvars(0, tb);
+end
 endmodule
