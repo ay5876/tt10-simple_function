@@ -2,24 +2,44 @@
 `default_nettype none
 
 module tb;
-  reg [7:0] ui_in;
+  reg  [7:0] ui_in;
   wire [7:0] uo_out;
-  reg [7:0] uio_in;
+  reg  [7:0] uio_in;
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
-  reg ena;
-  reg clk;
-  reg rst_n;
+  reg  ena;
+  reg  clk;
+  reg  rst_n;
 
-  // 1. Force the power nets globally
+  initial clk = 0;
+  always #5 clk = ~clk;
+
   initial begin
-    force VPWR = 1'b1;
-    force VGND = 1'b0;
-    force VPB  = 1'b1;
-    force VNB  = 1'b0;
+    ena   = 1'b1;
+    rst_n = 1'b1;
+    ui_in = 8'h00;
+    uio_in = 8'h00;
   end
 
-  // 2. Instantiate DUT
+`ifdef GL_TEST
+  // Gate-level netlist has VPWR/VGND ports
+  supply1 VPWR;
+  supply0 VGND;
+
+  tt_um_ay5876_simple dut (
+    .clk(clk),
+    .ena(ena),
+    .rst_n(rst_n),
+    .VPWR(VPWR),
+    .VGND(VGND),
+    .ui_in(ui_in),
+    .uio_in(uio_in),
+    .uio_oe(uio_oe),
+    .uio_out(uio_out),
+    .uo_out(uo_out)
+  );
+`else
+  // RTL version has NO power pins
   tt_um_ay5876_simple dut (
     .ui_in(ui_in),
     .uo_out(uo_out),
@@ -30,12 +50,6 @@ module tb;
     .clk(clk),
     .rst_n(rst_n)
   );
+`endif
 
-  initial clk = 0;
-  always #5 clk = ~clk;
-
-  initial begin
-    $dumpfile("sim_build/gl/sim.fst");
-    $dumpvars(0, tb);
-  end
 endmodule
