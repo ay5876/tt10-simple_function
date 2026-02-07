@@ -2,25 +2,24 @@
 `default_nettype none
 
 module tb;
-  reg  [7:0] ui_in;
+  reg [7:0] ui_in;
   wire [7:0] uo_out;
-  reg  [7:0] uio_in;
+  reg [7:0] uio_in;
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
-  reg  ena;
-  reg  clk;
-  reg  rst_n;
+  reg ena;
+  reg clk;
+  reg rst_n;
 
-  // Provide global supplies for gate-level sims (sky130 cells use these nets)
-`ifdef USE_POWER_PINS
-  supply1 VPWR;
-  supply0 VGND;
-  // Some libraries may reference these; define them globally even if not used by DUT
-  supply1 VPB;
-  supply0 VNB;
-`endif
+  // 1. Force the power nets globally
+  initial begin
+    force VPWR = 1'b1;
+    force VGND = 1'b0;
+    force VPB  = 1'b1;
+    force VNB  = 1'b0;
+  end
 
-  // Instantiate DUT (NO power pins on RTL module)
+  // 2. Instantiate DUT
   tt_um_ay5876_simple dut (
     .ui_in(ui_in),
     .uo_out(uo_out),
@@ -35,4 +34,8 @@ module tb;
   initial clk = 0;
   always #5 clk = ~clk;
 
+  initial begin
+    $dumpfile("sim_build/gl/sim.fst");
+    $dumpvars(0, tb);
+  end
 endmodule
